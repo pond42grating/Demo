@@ -134,9 +134,14 @@
         return;
       }
 
+      // Debug: Log the email being checked
+      console.log(`Checking email: ${email}`);
+
       // Check if the email exists in Firebase Authentication
       fetchSignInMethodsForEmail(auth, email)
         .then((methods) => {
+          console.log(`Sign-in methods for ${email}:`, methods); // Debug log
+
           if (methods.length === 0) {
             // Email does not exist in Firebase Auth
             status.innerText = "This email is not registered or does not have a sign-in method enabled.";
@@ -151,12 +156,14 @@
                 resetPasswordBtn.disabled = true;   // Disable button after request
               })
               .catch((error) => {
+                console.error("Error sending reset email:", error); // Debug log
                 status.innerText = `Error sending password reset email: ${error.message}`;
                 status.className = "error";
               });
           }
         })
         .catch((error) => {
+          console.error("Error checking email:", error); // Debug log
           status.innerText = `Error checking email: ${error.message}`;
           status.className = "error";
         });
