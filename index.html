@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login - DWS Management</title>
+  <title>DWS Management - Home</title>
   <script type="module">
     // Import Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 
     // Firebase configuration
     const firebaseConfig = {
@@ -26,51 +26,38 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // Login Function
-    async function login() {
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value.trim();
-
-      if (!email || !password) {
-        alert("Please enter both email and password.");
-        return;
-      }
+    // Google Sign-In Function
+    async function googleSignIn() {
+      const provider = new GoogleAuthProvider();
 
       try {
-        // Sign in the user with Firebase Authentication
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
 
-        // Fetch admin details from Firestore to check if the user is an admin (if needed)
-        const adminRef = doc(db, "Admin", "Details");
-        const adminDoc = await getDoc(adminRef);
+        // Check if user exists in Firestore
+        const userDocRef = doc(db, "Users", user.uid);
+        const userDoc = await getDoc(userDocRef);
 
-        if (adminDoc.exists()) {
-          const adminData = adminDoc.data();
-          // Check if the user matches admin credentials
-          if (email === adminData.id && password === adminData.password) {
-            window.location.href = "admin.html"; // Redirect to admin page
-          } else {
-            alert("Invalid credentials.");
-          }
+        if (userDoc.exists()) {
+          // If user exists, redirect to the home page
+          window.location.href = "index.html"; // Or another page where you want the user to go
         } else {
-          alert("Admin data not found.");
+          // New user, store their data
+          await setDoc(userDocRef, {
+            email: user.email,
+            isApproved: false // Admin approval needed
+          });
+          alert("Sign-up successful! Await admin approval.");
+          window.location.href = "index.html"; // Redirect to home page
         }
       } catch (error) {
-        console.error("Error during login: ", error);
-        alert("Error: " + error.message);
+        console.error("Google Sign-In error: ", error);
+        alert("Error during Google Sign-In: " + error.message);
       }
     }
 
-    // Toggle theme (dark/light mode)
-    function toggleTheme() {
-      const body = document.body;
-      body.classList.toggle("dark-mode");
-    }
-
-    // Export functions to global scope for HTML buttons
-    window.login = login;
-    window.toggleTheme = toggleTheme;
+    // Expose functions to global scope for HTML buttons
+    window.googleSignIn = googleSignIn;
   </script>
 
   <style>
@@ -104,36 +91,26 @@
       text-align: center;
     }
 
-    .input-field {
+    .google-sign-in-button {
       width: 100%;
       padding: 12px;
-      margin: 10px 0;
-      border-radius: 5px;
-      border: 1px solid #ddd;
-    }
-
-    .button {
-      width: 100%;
-      padding: 12px;
-      background-color: #4CAF50;
+      background-color: #4285F4;
       color: white;
       border: none;
       border-radius: 5px;
       cursor: pointer;
-    }
-
-    .button:hover {
-      background-color: #45a049;
-    }
-
-    .remember-me {
       display: flex;
       align-items: center;
-      margin: 10px 0;
+      justify-content: center;
+      margin-top: 10px;
     }
 
-    .remember-me input {
-      margin-right: 5px;
+    .google-sign-in-button:hover {
+      background-color: #357ae8;
+    }
+
+    .google-sign-in-button .material-icons {
+      margin-right: 10px;
     }
 
     .toggle-theme {
@@ -160,14 +137,11 @@
 <body>
   <div class="toggle-theme" onclick="toggleTheme()">🌙</div>
   <div class="container">
-    <h2>Login to DWS</h2>
-    <input type="email" id="email" class="input-field" placeholder="Email" required>
-    <input type="password" id="password" class="input-field" placeholder="Password" required>
-    <div class="remember-me">
-      <input type="checkbox" id="rememberMe">
-      <label for="rememberMe">Remember Me</label>
-    </div>
-    <button class="button" onclick="login()">Login</button>
+    <h2>Welcome to DWS Management</h2>
+    <button class="google-sign-in-button" onclick="googleSignIn()">
+      <span class="material-icons">google</span> Sign In with Google
+    </button>
+
     <p class="link"><a href="signup.html">Sign Up</a></p>
     <p class="link"><a href="forget.html">Forgot Password?</a></p>
   </div>
