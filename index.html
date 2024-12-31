@@ -8,6 +8,7 @@
     // Import Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
     import { getAuth, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 
     // Firebase configuration
     const firebaseConfig = {
@@ -23,12 +24,36 @@
     // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // User Login Function
+    async function login() {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+
+      // Check if email and password are provided
+      if (!email || !password) {
+        alert("Please enter both email and password.");
+        return;
+      }
+
+      try {
+        // Authenticate the user with Firebase
+        await auth.signInWithEmailAndPassword(auth, email, password);
+        alert("Login successful. You can now reset your password.");
+        // Store the email for later password reset use
+        localStorage.setItem("userEmail", email);
+        window.location.href = "resetPassword.html"; // Redirect to password reset page
+      } catch (error) {
+        console.error("Login error:", error);
+        alert("Error: " + error.message);
+      }
+    }
 
     // Password Reset Function
     async function resetPassword() {
       const email = document.getElementById("email").value.trim();
 
-      // Check if email is provided
       if (!email) {
         alert("Please enter your email.");
         return;
@@ -39,8 +64,7 @@
         await sendPasswordResetEmail(auth, email);
         alert("Password reset email sent! Please check your inbox.");
       } catch (error) {
-        // Handle errors from Firebase
-        console.error("Error during password reset: ", error);
+        console.error("Error during password reset:", error);
         if (error.code === 'auth/user-not-found') {
           alert("No user found with this email address.");
         } else if (error.code === 'auth/invalid-email') {
@@ -51,6 +75,8 @@
       }
     }
 
+    window.login = login;
+    window.resetPassword = resetPassword;
   </script>
   <style>
     body {
@@ -112,7 +138,8 @@
   <div class="container">
     <h2>Forgot Password</h2>
     <input type="email" id="email" class="input-field" placeholder="Enter your email" required>
-    <button class="button" onclick="resetPassword()">Reset Password</button>
+    <input type="password" id="password" class="input-field" placeholder="Enter your password" required>
+    <button class="button" onclick="login()">Login</button>
     <p class="link"><a href="index.html">Back to Login</a></p>
   </div>
 </body>
