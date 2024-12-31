@@ -6,7 +6,7 @@
   <title>Forgot Password</title>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
-    import { getAuth, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+    import { getAuth, sendPasswordResetEmail, fetchSignInMethodsForEmail } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
 
     // Firebase configuration
     const firebaseConfig = {
@@ -33,15 +33,24 @@
       }
 
       try {
-        // Send password reset email
+        // Check if the email is registered with Firebase (if any sign-in method exists)
+        const methods = await fetchSignInMethodsForEmail(auth, email);
+
+        if (methods.length === 0) {
+          // If no methods are returned, this means the email is not registered
+          alert("No user found with this email address.");
+          return;
+        }
+
+        // If the email is registered, send the reset password email
         await sendPasswordResetEmail(auth, email);
         alert("Password reset email sent! Please check your inbox.");
       } catch (error) {
         console.error("Error during password reset:", error);
-        if (error.code === 'auth/user-not-found') {
-          alert("No user found with this email address.");
-        } else if (error.code === 'auth/invalid-email') {
+        if (error.code === 'auth/invalid-email') {
           alert("Invalid email format.");
+        } else if (error.code === 'auth/user-not-found') {
+          alert("No user found with this email address.");
         } else {
           alert("An error occurred: " + error.message);
         }
