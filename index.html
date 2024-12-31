@@ -157,7 +157,11 @@
               })
               .catch((error) => {
                 console.error("Error sending reset email:", error); // Debug log
-                status.innerText = `Error sending password reset email: ${error.message}`;
+                if (error.code === 'auth/user-not-found') {
+                  status.innerText = "No user found with this email.";
+                } else {
+                  status.innerText = `Error sending password reset email: ${error.message}`;
+                }
                 status.className = "error";
               });
           }
