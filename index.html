@@ -4,9 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Forgot Password - DWS Management</title>
+
+  <!-- Firebase SDK -->
   <script type="module">
+    // Import Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
-    import { getAuth, sendPasswordResetEmail, fetchSignInMethodsForEmail } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+    import { getAuth, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
 
     // Firebase configuration
     const firebaseConfig = {
@@ -24,36 +27,45 @@
     const auth = getAuth(app);
 
     // Forgot password function
-    async function forgotPassword() {
+    async function resetPassword() {
       const email = document.getElementById("email").value.trim();
 
       if (!email) {
-        alert("Please enter your email.");
+        alert("Please enter your email address.");
         return;
       }
 
       try {
-        // Check if the email is registered in Firebase Authentication
-        const signInMethods = await fetchSignInMethodsForEmail(auth, email);
-
-        // If no sign-in methods are found, the email is not registered
-        if (signInMethods.length === 0) {
-          alert("Account does not exist.");
-        } else {
-          // Send password reset email
-          await sendPasswordResetEmail(auth, email);
-          alert("Password reset email sent. Please check your inbox.");
-        }
+        await sendPasswordResetEmail(auth, email);
+        alert("Password reset email sent! Please check your inbox.");
       } catch (error) {
         console.error("Error sending password reset email: ", error);
-        alert("An error occurred: " + error.message);
+        alert("Error: " + error.message);
       }
     }
 
-    // Expose function to global scope
-    window.forgotPassword = forgotPassword;
+    // Toggle theme between dark and light
+    function toggleTheme() {
+      document.body.classList.toggle('dark-mode');
+      if (document.body.classList.contains('dark-mode')) {
+        localStorage.setItem('theme', 'dark');
+      } else {
+        localStorage.setItem('theme', 'light');
+      }
+    }
+
+    // Apply the stored theme when the page loads
+    window.onload = function() {
+      const storedTheme = localStorage.getItem('theme');
+      if (storedTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+      } else {
+        document.body.classList.remove('dark-mode');
+      }
+    };
   </script>
 
+  <!-- CSS for theme -->
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -63,6 +75,11 @@
       transition: background-color 0.3s ease;
     }
 
+    .dark-mode {
+      background-color: #333;
+      color: white;
+    }
+
     .container {
       max-width: 400px;
       margin: 50px auto;
@@ -70,6 +87,10 @@
       padding: 30px;
       border-radius: 10px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .dark-mode .container {
+      background-color: #444;
     }
 
     h2 {
@@ -98,6 +119,13 @@
       background-color: #45a049;
     }
 
+    .toggle-theme {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      cursor: pointer;
+    }
+
     .link {
       display: block;
       text-align: center;
@@ -113,11 +141,19 @@
 </head>
 
 <body>
+  <!-- Theme toggle button -->
+  <div class="toggle-theme" onclick="toggleTheme()">🌙</div>
+
+  <!-- Container for reset password form -->
   <div class="container">
     <h2>Forgot Password</h2>
-    <input type="email" id="email" class="input-field" placeholder="Enter your email" required>
-    <button class="button" onclick="forgotPassword()">Submit</button>
-    <p class="link"><a href="index.html">Back to Login</a></p>
+    <p>Enter your email address below to reset your password.</p>
+
+    <input type="email" id="email" class="input-field" placeholder="Email" required>
+
+    <button class="button" onclick="resetPassword()">Send Reset Link</button>
+
+    <p class="link"><a href="login.html">Back to Login</a></p>
   </div>
 </body>
 </html>
