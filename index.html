@@ -139,7 +139,7 @@
         .then((methods) => {
           if (methods.length === 0) {
             // Email does not exist in Firebase Auth
-            status.innerText = "This email is not registered.";
+            status.innerText = "This email is not registered or does not have a sign-in method enabled.";
             status.className = "error";
           } else {
             // Send password reset email if the email exists
