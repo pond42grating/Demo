@@ -33,10 +33,12 @@
       }
 
       try {
+        console.log("Checking sign-in methods for email:", email);
         // Check if the email is registered with Firebase (if any sign-in method exists)
-        console.log("Checking sign-in methods for email:", email); // Debug log
         const methods = await fetchSignInMethodsForEmail(auth, email);
-
+        
+        console.log("Methods for email:", methods);  // Log the result of fetchSignInMethodsForEmail
+        
         if (methods.length === 0) {
           // If no methods are returned, this means the email is not registered
           alert("No user found with this email address.");
