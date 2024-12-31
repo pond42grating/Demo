@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,6 +7,7 @@
   <script type="module">
     // Import Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
     import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 
     // Firebase configuration
@@ -23,6 +23,7 @@
 
     // Initialize Firebase
     const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
     const db = getFirestore(app);
 
     // Login Function
@@ -36,12 +37,17 @@
       }
 
       try {
-        // Fetch admin details from Firestore
+        // Sign in the user with Firebase Authentication
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        // Fetch admin details from Firestore to check if the user is an admin (if needed)
         const adminRef = doc(db, "Admin", "Details");
         const adminDoc = await getDoc(adminRef);
 
         if (adminDoc.exists()) {
           const adminData = adminDoc.data();
+          // Check if the user matches admin credentials
           if (email === adminData.id && password === adminData.password) {
             window.location.href = "admin.html"; // Redirect to admin page
           } else {
@@ -51,13 +57,20 @@
           alert("Admin data not found.");
         }
       } catch (error) {
-        console.error("Error fetching admin data: ", error);
-        alert("An error occurred while fetching admin details.");
+        console.error("Error during login: ", error);
+        alert("Error: " + error.message);
       }
+    }
+
+    // Toggle theme (dark/light mode)
+    function toggleTheme() {
+      const body = document.body;
+      body.classList.toggle("dark-mode");
     }
 
     // Export functions to global scope for HTML buttons
     window.login = login;
+    window.toggleTheme = toggleTheme;
   </script>
 
   <style>
