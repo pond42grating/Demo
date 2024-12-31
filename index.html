@@ -34,6 +34,7 @@
 
       try {
         // Check if the email is registered with Firebase (if any sign-in method exists)
+        console.log("Checking sign-in methods for email:", email); // Debug log
         const methods = await fetchSignInMethodsForEmail(auth, email);
 
         if (methods.length === 0) {
