@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Forgot Password - DWS Management</title>
   <script type="module">
-    // Import Firebase Auth
+    // Import Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
     import { getAuth, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
 
@@ -24,21 +24,30 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
-    // Reset Password Function
+    // Password Reset Function
     async function resetPassword() {
       const email = document.getElementById("email").value.trim();
 
+      // Check if email is provided
       if (!email) {
         alert("Please enter your email.");
         return;
       }
 
       try {
+        // Send password reset email
         await sendPasswordResetEmail(auth, email);
         alert("Password reset email sent! Please check your inbox.");
       } catch (error) {
+        // Handle errors from Firebase
         console.error("Error during password reset: ", error);
-        alert("Error: " + error.message);
+        if (error.code === 'auth/user-not-found') {
+          alert("No user found with this email address.");
+        } else if (error.code === 'auth/invalid-email') {
+          alert("Invalid email format.");
+        } else {
+          alert("An error occurred: " + error.message);
+        }
       }
     }
 
