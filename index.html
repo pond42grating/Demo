@@ -3,12 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DWS Management - Home</title>
+  <title>Forgot Password - DWS Management</title>
   <script type="module">
-    // Import Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
-    import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+    import { getAuth, sendPasswordResetEmail, fetchSignInMethodsForEmail } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
 
     // Firebase configuration
     const firebaseConfig = {
@@ -24,40 +22,36 @@
     // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const db = getFirestore(app);
 
-    // Google Sign-In Function
-    async function googleSignIn() {
-      const provider = new GoogleAuthProvider();
+    // Forgot password function
+    async function forgotPassword() {
+      const email = document.getElementById("email").value.trim();
+
+      if (!email) {
+        alert("Please enter your email.");
+        return;
+      }
 
       try {
-        const result = await signInWithPopup(auth, provider);
-        const user = result.user;
+        // Check if the email is registered in Firebase Authentication
+        const signInMethods = await fetchSignInMethodsForEmail(auth, email);
 
-        // Check if user exists in Firestore
-        const userDocRef = doc(db, "Users", user.uid);
-        const userDoc = await getDoc(userDocRef);
-
-        if (userDoc.exists()) {
-          // If user exists, redirect to the home page
-          window.location.href = "index.html"; // Or another page where you want the user to go
+        // If no sign-in methods are found, the email is not registered
+        if (signInMethods.length === 0) {
+          alert("Account does not exist.");
         } else {
-          // New user, store their data
-          await setDoc(userDocRef, {
-            email: user.email,
-            isApproved: false // Admin approval needed
-          });
-          alert("Sign-up successful! Await admin approval.");
-          window.location.href = "index.html"; // Redirect to home page
+          // Send password reset email
+          await sendPasswordResetEmail(auth, email);
+          alert("Password reset email sent. Please check your inbox.");
         }
       } catch (error) {
-        console.error("Google Sign-In error: ", error);
-        alert("Error during Google Sign-In: " + error.message);
+        console.error("Error sending password reset email: ", error);
+        alert("An error occurred: " + error.message);
       }
     }
 
-    // Expose functions to global scope for HTML buttons
-    window.googleSignIn = googleSignIn;
+    // Expose function to global scope
+    window.forgotPassword = forgotPassword;
   </script>
 
   <style>
@@ -69,11 +63,6 @@
       transition: background-color 0.3s ease;
     }
 
-    .dark-mode {
-      background-color: #333;
-      color: white;
-    }
-
     .container {
       max-width: 400px;
       margin: 50px auto;
@@ -83,41 +72,30 @@
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
 
-    .dark-mode .container {
-      background-color: #444;
-    }
-
     h2 {
       text-align: center;
     }
 
-    .google-sign-in-button {
+    .input-field {
       width: 100%;
       padding: 12px;
-      background-color: #4285F4;
+      margin: 10px 0;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+    }
+
+    .button {
+      width: 100%;
+      padding: 12px;
+      background-color: #4CAF50;
       color: white;
       border: none;
       border-radius: 5px;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-top: 10px;
     }
 
-    .google-sign-in-button:hover {
-      background-color: #357ae8;
-    }
-
-    .google-sign-in-button .material-icons {
-      margin-right: 10px;
-    }
-
-    .toggle-theme {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      cursor: pointer;
+    .button:hover {
+      background-color: #45a049;
     }
 
     .link {
@@ -135,15 +113,11 @@
 </head>
 
 <body>
-  <div class="toggle-theme" onclick="toggleTheme()">🌙</div>
   <div class="container">
-    <h2>Welcome to DWS Management</h2>
-    <button class="google-sign-in-button" onclick="googleSignIn()">
-      <span class="material-icons">google</span> Sign In with Google
-    </button>
-
-    <p class="link"><a href="signup.html">Sign Up</a></p>
-    <p class="link"><a href="forget.html">Forgot Password?</a></p>
+    <h2>Forgot Password</h2>
+    <input type="email" id="email" class="input-field" placeholder="Enter your email" required>
+    <button class="button" onclick="forgotPassword()">Submit</button>
+    <p class="link"><a href="index.html">Back to Login</a></p>
   </div>
 </body>
 </html>
