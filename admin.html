@@ -1,1 +1,123 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - DWS Management</title>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAXZgxM6PU-T3D2811KnBszblRWju7rv1Y",
+      authDomain: "dws-management.firebaseapp.com",
+      projectId: "dws-management",
+      storageBucket: "dws-management.appspot.com",
+      messagingSenderId: "23827231923",
+      appId: "1:23827231923:web:97141b6d19c7cd109d2cc6",
+      measurementId: "G-L14GLJDYW7"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    async function loadUsers() {
+      const usersRef = collection(db, "users");
+      const querySnapshot = await getDocs(usersRef);
+
+      let usersHtml = "";
+      querySnapshot.forEach((doc) => {
+        const user = doc.data();
+        usersHtml += `
+          <div class="user-card">
+            <p>Email: ${user.email}</p>
+            <p>Status: ${user.approved ? 'Approved' : 'Pending'}</p>
+            <button onclick="approveUser('${doc.id}')">Approve</button>
+            <button onclick="rejectUser('${doc.id}')">Reject</button>
+          </div>
+        `;
+      });
+
+      document.getElementById("usersList").innerHTML = usersHtml;
+    }
+
+    async function approveUser(userId) {
+      const userRef = doc(db, "users", userId);
+      await updateDoc(userRef, { approved: true });
+      loadUsers(); // Reload user list
+    }
+
+    async function rejectUser(userId) {
+      const userRef = doc(db, "users", userId);
+      await updateDoc(userRef, { approved: false });
+      loadUsers(); // Reload user list
+    }
+
+    window.onload = loadUsers;
+  </script>
+
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f6f9;
+      margin: 0;
+    }
+
+    .container {
+      padding: 30px;
+      width: 100%;
+      max-width: 800px;
+      margin: 20px auto;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+      text-align: center;
+      color: #4CAF50;
+      margin-bottom: 20px;
+    }
+
+    .user-card {
+      padding: 15px;
+      background: #f9f9f9;
+      border-radius: 8px;
+      margin: 10px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .user-card p {
+      margin: 0;
+    }
+
+    button {
+      padding: 8px 16px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    #usersList {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h2>Manage Users</h2>
+    <div id="usersList"></div>
+  </div>
+</body>
+</html>
