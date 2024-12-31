@@ -1,1 +1,162 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - DWS Management</title>
+  <script type="module">
+    // Import Firebase
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyAXZgxM6PU-T3D2811KnBszblRWju7rv1Y",
+      authDomain: "dws-management.firebaseapp.com",
+      projectId: "dws-management",
+      storageBucket: "dws-management.appspot.com",
+      messagingSenderId: "23827231923",
+      appId: "1:23827231923:web:97141b6d19c7cd109d2cc6",
+      measurementId: "G-L14GLJDYW7"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Login Function
+    async function login() {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+
+      if (!email || !password) {
+        alert("Please enter both email and password.");
+        return;
+      }
+
+      try {
+        // Fetch admin details from Firestore
+        const adminRef = doc(db, "Admin", "Details");
+        const adminDoc = await getDoc(adminRef);
+
+        if (adminDoc.exists()) {
+          const adminData = adminDoc.data();
+          if (email === adminData.id && password === adminData.password) {
+            window.location.href = "admin.html"; // Redirect to admin page
+          } else {
+            alert("Invalid credentials.");
+          }
+        } else {
+          alert("Admin data not found.");
+        }
+      } catch (error) {
+        console.error("Error fetching admin data: ", error);
+        alert("An error occurred while fetching admin details.");
+      }
+    }
+
+    // Export functions to global scope for HTML buttons
+    window.login = login;
+  </script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f9;
+      transition: background-color 0.3s ease;
+    }
+
+    .dark-mode {
+      background-color: #333;
+      color: white;
+    }
+
+    .container {
+      max-width: 400px;
+      margin: 50px auto;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .dark-mode .container {
+      background-color: #444;
+    }
+
+    h2 {
+      text-align: center;
+    }
+
+    .input-field {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+    }
+
+    .button {
+      width: 100%;
+      padding: 12px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .button:hover {
+      background-color: #45a049;
+    }
+
+    .remember-me {
+      display: flex;
+      align-items: center;
+      margin: 10px 0;
+    }
+
+    .remember-me input {
+      margin-right: 5px;
+    }
+
+    .toggle-theme {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      cursor: pointer;
+    }
+
+    .link {
+      display: block;
+      text-align: center;
+      margin-top: 15px;
+      color: #4CAF50;
+      text-decoration: none;
+    }
+
+    .link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="toggle-theme" onclick="toggleTheme()">🌙</div>
+  <div class="container">
+    <h2>Login to DWS</h2>
+    <input type="email" id="email" class="input-field" placeholder="Email" required>
+    <input type="password" id="password" class="input-field" placeholder="Password" required>
+    <div class="remember-me">
+      <input type="checkbox" id="rememberMe">
+      <label for="rememberMe">Remember Me</label>
+    </div>
+    <button class="button" onclick="login()">Login</button>
+    <p class="link"><a href="signup.html">Sign Up</a></p>
+    <p class="link"><a href="forget.html">Forgot Password?</a></p>
+  </div>
+</body>
+</html>
