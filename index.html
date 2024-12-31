@@ -4,10 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Forgot Password - DWS Management</title>
-  
-  <!-- Firebase SDK -->
+
   <script type="module">
-    // Import Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
     import { getAuth, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
 
@@ -26,7 +24,7 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
-    // Forgot password function
+    // Password reset function
     async function resetPassword() {
       const email = document.getElementById("email").value.trim();
 
@@ -39,6 +37,7 @@
         // Send password reset email
         await sendPasswordResetEmail(auth, email);
         alert("Password reset email sent! Please check your inbox.");
+        window.location.href = "index.html"; // Redirect to login page
       } catch (error) {
         console.error("Error sending password reset email: ", error);
         alert("Error: " + error.message);
@@ -66,49 +65,63 @@
     };
   </script>
 
-  <!-- CSS for theme -->
+  <!-- Include Google Material Icons -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
   <style>
     body {
       font-family: Arial, sans-serif;
+      background-color: #f4f6f9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
       margin: 0;
-      padding: 0;
-      background-color: #f4f4f9;
-      transition: background-color 0.3s ease;
-    }
-
-    .dark-mode {
-      background-color: #333;
-      color: white;
     }
 
     .container {
-      max-width: 400px;
-      margin: 50px auto;
       background: white;
       padding: 30px;
       border-radius: 10px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    .dark-mode .container {
-      background-color: #444;
+      max-width: 400px;
+      width: 100%;
     }
 
     h2 {
       text-align: center;
+      margin-bottom: 20px;
     }
 
     .input-field {
       width: 100%;
-      padding: 12px;
+      padding: 10px;
       margin: 10px 0;
-      border-radius: 5px;
       border: 1px solid #ddd;
+      border-radius: 5px;
+      position: relative;
+    }
+
+    .input-container {
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+
+    .input-container input {
+      flex: 1;
+    }
+
+    .input-container .material-icons {
+      position: absolute;
+      right: 10px;
+      cursor: pointer;
+      color: #888;
     }
 
     .button {
       width: 100%;
-      padding: 12px;
+      padding: 10px;
       background-color: #4CAF50;
       color: white;
       border: none;
@@ -118,13 +131,6 @@
 
     .button:hover {
       background-color: #45a049;
-    }
-
-    .toggle-theme {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      cursor: pointer;
     }
 
     .link {
@@ -142,10 +148,6 @@
 </head>
 
 <body>
-  <!-- Theme toggle button -->
-  <div class="toggle-theme" onclick="toggleTheme()">🌙</div>
-
-  <!-- Container for reset password form -->
   <div class="container">
     <h2>Forgot Password</h2>
     <p>Enter your email address below to reset your password.</p>
@@ -154,7 +156,7 @@
 
     <button class="button" onclick="resetPassword()">Send Reset Link</button>
 
-    <p class="link"><a href="login.html">Back to Login</a></p>
+    <p class="link"><a href="index.html">Back to Login</a></p>
   </div>
 </body>
 </html>
