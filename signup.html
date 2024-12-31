@@ -37,7 +37,7 @@
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         await sendEmailVerification(userCredential.user); // Send verification email
 
-        const userRef = doc(db, "users", userCredential.user.uid);
+        const userRef = doc(db, "users", "userCredential");
         await setDoc(userRef, {
           email: email,
           approved: false, // Initially unapproved
