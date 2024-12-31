@@ -3,12 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Forgot Password - DWS Management</title>
+  <title>Forgot Password</title>
   <script type="module">
-    // Import Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
     import { getAuth, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 
     // Firebase configuration
     const firebaseConfig = {
@@ -24,33 +22,8 @@
     // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const db = getFirestore(app);
 
-    // User Login Function
-    async function login() {
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value.trim();
-
-      // Check if email and password are provided
-      if (!email || !password) {
-        alert("Please enter both email and password.");
-        return;
-      }
-
-      try {
-        // Authenticate the user with Firebase
-        await auth.signInWithEmailAndPassword(auth, email, password);
-        alert("Login successful. You can now reset your password.");
-        // Store the email for later password reset use
-        localStorage.setItem("userEmail", email);
-        window.location.href = "resetPassword.html"; // Redirect to password reset page
-      } catch (error) {
-        console.error("Login error:", error);
-        alert("Error: " + error.message);
-      }
-    }
-
-    // Password Reset Function
+    // Reset password function
     async function resetPassword() {
       const email = document.getElementById("email").value.trim();
 
@@ -75,72 +48,13 @@
       }
     }
 
-    window.login = login;
     window.resetPassword = resetPassword;
   </script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #f4f4f9;
-    }
-
-    .container {
-      max-width: 400px;
-      margin: 50px auto;
-      background: white;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    h2 {
-      text-align: center;
-    }
-
-    .input-field {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      border-radius: 5px;
-      border: 1px solid #ddd;
-    }
-
-    .button {
-      width: 100%;
-      padding: 12px;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    .button:hover {
-      background-color: #45a049;
-    }
-
-    .link {
-      display: block;
-      text-align: center;
-      margin-top: 15px;
-      color: #4CAF50;
-      text-decoration: none;
-    }
-
-    .link:hover {
-      text-decoration: underline;
-    }
-  </style>
 </head>
 <body>
-  <div class="container">
-    <h2>Forgot Password</h2>
-    <input type="email" id="email" class="input-field" placeholder="Enter your email" required>
-    <input type="password" id="password" class="input-field" placeholder="Enter your password" required>
-    <button class="button" onclick="login()">Login</button>
-    <p class="link"><a href="index.html">Back to Login</a></p>
-  </div>
+  <h2>Forgot Password</h2>
+  <label for="email">Enter your email:</label>
+  <input type="email" id="email" required placeholder="Enter email">
+  <button onclick="resetPassword()">Send Reset Link</button>
 </body>
 </html>
