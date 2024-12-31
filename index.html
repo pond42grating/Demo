@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Forgot Password - DWS Management</title>
+  
+  <!-- Google Material Icons -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -17,31 +21,49 @@
       flex-direction: column;
     }
 
+    .container {
+      background-color: white;
+      padding: 40px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      font-size: 24px;
+      color: #333;
+    }
+
+    input[type="email"] {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+
     .btn {
-      padding: 10px 20px;
+      width: 100%;
+      padding: 12px;
       background-color: #4CAF50;
       color: white;
       border: none;
-      cursor: pointer;
       border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
     }
 
     .btn:hover {
       background-color: #45a049;
     }
 
-    .error {
-      color: red;
-      font-size: 14px;
-    }
-
-    .success {
-      color: green;
-      font-size: 14px;
-    }
-
     .link {
       margin-top: 15px;
+      display: block;
       color: #4CAF50;
       text-decoration: none;
     }
@@ -49,21 +71,38 @@
     .link:hover {
       text-decoration: underline;
     }
+
+    .status {
+      font-size: 14px;
+      margin-top: 10px;
+    }
+
+    .error {
+      color: red;
+    }
+
+    .success {
+      color: green;
+    }
+
+    .material-icons {
+      font-size: 24px;
+      color: #4CAF50;
+    }
   </style>
 </head>
 <body>
-  <h1>Forgot Password</h1>
-
-  <!-- Email Input Form for Password Reset -->
-  <input type="email" id="email" placeholder="Enter your email" required>
-  <button class="btn" id="reset-password-btn">Reset Password</button>
-  
-  <p id="status"></p>
-
-  <p class="link"><a href="index.html">Back to Login</a></p>
+  <div class="container">
+    <h1>Forgot Password</h1>
+    <span class="material-icons">mail</span>
+    <input type="email" id="email" placeholder="Enter your registered email" required>
+    <button class="btn" id="reset-password-btn">Reset Password</button>
+    <p class="link"><a href="index.html">Back to Login</a></p>
+    <p id="status" class="status"></p>
+  </div>
 
   <script type="module">
-    import { getAuth, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-auth.js";
+    import { getAuth, sendPasswordResetEmail, fetchSignInMethodsForEmail } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-auth.js";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-app.js";
 
     // Firebase configuration
@@ -95,16 +134,30 @@
         return;
       }
 
-      // Send password reset email
-      sendPasswordResetEmail(auth, email)
-        .then(() => {
-          status.innerText = `Password reset email sent to ${email}. Please check your inbox.`;
-          status.className = "success";
-          emailInput.disabled = true;  // Disable email input after request
-          resetPasswordBtn.disabled = true;   // Disable button after request
+      // Check if the email exists in Firebase Authentication
+      fetchSignInMethodsForEmail(auth, email)
+        .then((methods) => {
+          if (methods.length === 0) {
+            // Email does not exist in Firebase Auth
+            status.innerText = "This email is not registered.";
+            status.className = "error";
+          } else {
+            // Send password reset email if the email exists
+            sendPasswordResetEmail(auth, email)
+              .then(() => {
+                status.innerText = `Password reset email sent to ${email}. Please check your inbox.`;
+                status.className = "success";
+                emailInput.disabled = true;  // Disable email input after request
+                resetPasswordBtn.disabled = true;   // Disable button after request
+              })
+              .catch((error) => {
+                status.innerText = `Error sending password reset email: ${error.message}`;
+                status.className = "error";
+              });
+          }
         })
         .catch((error) => {
-          status.innerText = `Error sending password reset email: ${error.message}`;
+          status.innerText = `Error checking email: ${error.message}`;
           status.className = "error";
         });
     });
