@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Forgot Password - DWS Management</title>
-
+  
   <!-- Firebase SDK -->
   <script type="module">
     // Import Firebase
@@ -36,6 +36,7 @@
       }
 
       try {
+        // Send password reset email
         await sendPasswordResetEmail(auth, email);
         alert("Password reset email sent! Please check your inbox.");
       } catch (error) {
@@ -44,7 +45,7 @@
       }
     }
 
-    // Toggle theme between dark and light
+    // Toggle theme function (dark/light mode)
     function toggleTheme() {
       document.body.classList.toggle('dark-mode');
       if (document.body.classList.contains('dark-mode')) {
