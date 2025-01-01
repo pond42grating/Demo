@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,9 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin - DWS Management</title>
   <script type="module">
+    import { getAuth, signOut, getUser } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
-    import { getFirestore, collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, query, where, doc, updateDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+    import { getMessaging } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-messaging.js";
 
+    // Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyAXZgxM6PU-T3D2811KnBszblRWju7rv1Y",
       authDomain: "dws-management.firebaseapp.com",
@@ -19,105 +21,209 @@
       measurementId: "G-L14GLJDYW7"
     };
 
+    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
     const db = getFirestore(app);
 
-    async function loadUsers() {
-      const usersRef = collection(db, "users");
-      const querySnapshot = await getDocs(usersRef);
+    // User Approval Notification
+    let pendingApprovalCount = 0;
 
-      let usersHtml = "";
-      querySnapshot.forEach((doc) => {
-        const user = doc.data();
-        usersHtml += `
-          <div class="user-card">
-            <p>Email: ${user.email}</p>
-            <p>Status: ${user.approved ? 'Approved' : 'Pending'}</p>
-            <button onclick="approveUser('${doc.id}')">Approve</button>
-            <button onclick="rejectUser('${doc.id}')">Reject</button>
-          </div>
-        `;
+    // Fetch Pending Users
+    async function fetchPendingUsers() {
+      const usersRef = collection(db, "Users");
+      const q = query(usersRef, where("status", "==", "pending"));
+      const querySnapshot = await getDocs(q);
+      pendingApprovalCount = querySnapshot.size;
+      document.getElementById("notification-badge").textContent = pendingApprovalCount;
+
+      if (pendingApprovalCount > 0) {
+        document.getElementById("notification-badge").style.display = "inline-block";
+      }
+    }
+
+    // Approve User
+    async function approveUser(userId) {
+      const userRef = doc(db, "Users", userId);
+      await updateDoc(userRef, {
+        status: "approved"
       });
 
-      document.getElementById("usersList").innerHTML = usersHtml;
+      // Add user to Firebase Auth
+      const user = await getUser(userId);
+      if (user) {
+        // Optionally send a welcome email or notification
+        alert(`User ${userId} has been approved!`);
+      }
+
+      fetchPendingUsers(); // Refresh the pending user count
     }
 
-    async function approveUser(userId) {
-      const userRef = doc(db, "users", userId);
-      await updateDoc(userRef, { approved: true });
-      loadUsers(); // Reload user list
+    // Admin Logout Function
+    function logout() {
+      signOut(auth).then(() => {
+        window.location.href = "index.html"; // Redirect to login page after logging out
+      }).catch((error) => {
+        console.error("Error logging out:", error);
+      });
     }
 
-    async function rejectUser(userId) {
-      const userRef = doc(db, "users", userId);
-      await updateDoc(userRef, { approved: false });
-      loadUsers(); // Reload user list
-    }
+    window.onload = function() {
+      fetchPendingUsers(); // Get the number of pending approvals when the page loads
+    };
 
-    window.onload = loadUsers;
+    window.logout = logout;
+    window.approveUser = approveUser;
   </script>
 
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f4f6f9;
+      font-family: Arial, sans-serif;
       margin: 0;
+      padding: 0;
+      background-color: #f4f4f9;
+      color: #333;
     }
 
+    /* Admin Container */
     .container {
-      padding: 30px;
-      width: 100%;
-      max-width: 800px;
-      margin: 20px auto;
+      max-width: 1200px;
+      margin: 50px auto;
+      padding: 20px;
       background: white;
       border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
 
-    h2 {
+    /* Header Section */
+    h1 {
       text-align: center;
       color: #4CAF50;
-      margin-bottom: 20px;
     }
 
-    .user-card {
-      padding: 15px;
-      background: #f9f9f9;
-      border-radius: 8px;
-      margin: 10px 0;
+    .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      margin-bottom: 20px;
     }
 
-    .user-card p {
-      margin: 0;
+    /* Notification Badge */
+    .notification-badge {
+      position: relative;
+      display: inline-block;
+      background-color: red;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 50%;
+      font-size: 12px;
+      top: -5px;
+      right: -10px;
     }
 
-    button {
-      padding: 8px 16px;
+    .notification-btn {
+      position: relative;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    .notification-btn:hover {
+      background-color: #45a049;
+    }
+
+    /* Dashboard Cards */
+    .dashboard {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 40px;
+    }
+
+    .card {
+      background-color: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      width: 250px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    .card h3 {
+      margin-top: 0;
+    }
+
+    .card p {
+      font-size: 20px;
+      color: #333;
+    }
+
+    .button {
+      display: block;
+      margin: 20px auto;
+      padding: 12px;
       background-color: #4CAF50;
       color: white;
       border: none;
       border-radius: 5px;
       cursor: pointer;
-      margin-left: 10px;
     }
 
-    button:hover {
+    .button:hover {
       background-color: #45a049;
     }
 
-    #usersList {
-      margin-top: 20px;
+    .button.logout-btn {
+      background-color: #f44336;
+    }
+
+    .button.logout-btn:hover {
+      background-color: #e53935;
     }
   </style>
 </head>
 
 <body>
   <div class="container">
-    <h2>Manage Users</h2>
-    <div id="usersList"></div>
+    <div class="header">
+      <h1>Admin Dashboard</h1>
+      <button class="notification-btn" onclick="window.location.href='manageUsers.html'">
+        New User Approvals
+        <span id="notification-badge" class="notification-badge" style="display: none;"></span>
+      </button>
+    </div>
+
+    <!-- Dashboard Overview -->
+    <div class="dashboard">
+      <div class="card">
+        <h3>Total DWS Entries</h3>
+        <p>10</p> <!-- Replace with dynamic data -->
+      </div>
+      <div class="card">
+        <h3>Total Users</h3>
+        <p>50</p> <!-- Replace with dynamic data -->
+      </div>
+      <div class="card">
+        <h3>Pending Tasks</h3>
+        <p>5</p> <!-- Replace with dynamic data -->
+      </div>
+    </div>
+
+    <!-- DWS Management -->
+    <button class="button" onclick="window.location.href='createDWS.html'">Create New DWS</button>
+    <button class="button" onclick="window.location.href='manageDWS.html'">View/Edit DWS</button>
+
+    <!-- User Management -->
+    <button class="button" onclick="window.location.href='manageUsers.html'">Manage Users</button>
+
+    <!-- Admin Settings -->
+    <button class="button" onclick="window.location.href='adminSettings.html'">Admin Settings</button>
+
+    <!-- Logout -->
+    <button class="button logout-btn" onclick="logout()">Logout</button>
   </div>
 </body>
 </html>
