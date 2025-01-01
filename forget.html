@@ -7,8 +7,7 @@
   <script type="module">
     // Import Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
-    import { getAuth, sendPasswordResetEmail, getUser } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+    import { getAuth, fetchSignInMethodsForEmail, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
 
     // Firebase configuration
     const firebaseConfig = {
@@ -35,27 +34,24 @@
       }
 
       try {
-        // Check if the user is verified
-        const userRef = doc(getFirestore(app), "users", email);
-        const userDoc = await getDoc(userRef);
+        // Check if the email is registered with Firebase Authentication
+        const signInMethods = await fetchSignInMethodsForEmail(auth, email);
 
-        if (!userDoc.exists()) {
-          alert("User not found.");
+        if (signInMethods.length === 0) {
+          alert("Error: No account found with this email.");
           return;
         }
 
-        const userData = userDoc.data();
-        if (!userData.emailVerified) {
-          alert("Error: Your email address is not verified. Please verify your email first.");
-          return;
-        }
-
-        // Send password reset email
+        // Send the password reset email
         await sendPasswordResetEmail(auth, email);
         alert("Password reset email has been sent. Please check your inbox.");
       } catch (error) {
-        console.error("Error during password reset: ", error);
-        alert("Error: " + error.message);
+        if (error.code === "auth/user-not-found") {
+          alert("Error: No account found with this email.");
+        } else {
+          console.error("Error during password reset: ", error);
+          alert("Error: " + error.message);
+        }
       }
     }
 
