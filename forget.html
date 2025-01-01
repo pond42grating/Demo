@@ -1,95 +1,104 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Forget Password - DWS Management</title>
+  <title>Forgot Password - DWS Management</title>
   <script type="module">
+    // Import Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
-    import { getAuth, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+    import { getAuth, sendPasswordResetEmail, getUser } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 
+    // Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyAXZgxM6PU-T3D2811KnBszblRWju7rv1Y",
       authDomain: "dws-management.firebaseapp.com",
-      projectId:  "dws-management",
+      projectId: "dws-management",
       storageBucket: "dws-management.appspot.com",
       messagingSenderId: "23827231923",
       appId: "1:23827231923:web:97141b6d19c7cd109d2cc6",
       measurementId: "G-L14GLJDYW7"
     };
 
+    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
+    // Forgot Password Function
     async function resetPassword() {
       const email = document.getElementById("email").value.trim();
 
       if (!email) {
-        alert("Please enter your email.");
+        alert("Please enter your email address.");
         return;
       }
 
       try {
+        // Check if the user is verified
+        const userRef = doc(getFirestore(app), "users", email);
+        const userDoc = await getDoc(userRef);
+
+        if (!userDoc.exists()) {
+          alert("User not found.");
+          return;
+        }
+
+        const userData = userDoc.data();
+        if (!userData.emailVerified) {
+          alert("Error: Your email address is not verified. Please verify your email first.");
+          return;
+        }
+
+        // Send password reset email
         await sendPasswordResetEmail(auth, email);
-        alert("Password reset email sent! Please check your inbox.");
+        alert("Password reset email has been sent. Please check your inbox.");
       } catch (error) {
-        console.error("Error sending password reset email: ", error);
-        alert("An error occurred while sending the reset email.");
+        console.error("Error during password reset: ", error);
+        alert("Error: " + error.message);
       }
     }
+
+    window.resetPassword = resetPassword;
   </script>
 
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f4f6f9;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
+      font-family: Arial, sans-serif;
       margin: 0;
+      padding: 0;
+      background-color: #f4f4f9;
     }
 
     .container {
+      max-width: 400px;
+      margin: 50px auto;
       background: white;
       padding: 30px;
       border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      width: 100%;
-      max-width: 400px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
 
     h2 {
       text-align: center;
-      color: #4CAF50;
-      margin-bottom: 20px;
     }
 
     .input-field {
       width: 100%;
-      padding: 14px;
+      padding: 12px;
       margin: 10px 0;
-      border-radius: 8px;
+      border-radius: 5px;
       border: 1px solid #ddd;
-      background-color: #f9f9f9;
-    }
-
-    .input-field:focus {
-      outline: none;
-      border-color: #4CAF50;
-      background-color: #fff;
     }
 
     .button {
       width: 100%;
-      padding: 14px;
+      padding: 12px;
       background-color: #4CAF50;
       color: white;
       border: none;
-      border-radius: 8px;
+      border-radius: 5px;
       cursor: pointer;
-      font-size: 16px;
     }
 
     .button:hover {
@@ -112,10 +121,10 @@
 
 <body>
   <div class="container">
-    <h2>Forget Password</h2>
+    <h2>Forgot Password</h2>
     <input type="email" id="email" class="input-field" placeholder="Enter your email" required>
-    <button class="button" onclick="resetPassword()">Send Reset Email</button>
-    <p class="link"><a href="login.html">Back to Login</a></p>
+    <button class="button" onclick="resetPassword()">Reset Password</button>
+    <p class="link"><a href="index.html">Back to Login</a></p>
   </div>
 </body>
 </html>
