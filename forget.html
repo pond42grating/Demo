@@ -7,7 +7,7 @@
   <script type="module">
     // Import Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
-    import { getAuth, fetchSignInMethodsForEmail, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+    import { getAuth, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
 
     // Firebase configuration
     const firebaseConfig = {
@@ -34,26 +34,22 @@
       }
 
       try {
-        console.log("Checking email:", email);
+        console.log("Attempting to send password reset email to:", email);
 
-        // Fetch sign-in methods for the email
-        const signInMethods = await fetchSignInMethodsForEmail(auth, email);
-
-        console.log("Sign-in methods for email:", signInMethods);
-
-        if (Array.isArray(signInMethods) && signInMethods.length > 0) {
-          // If email is registered, send password reset email
-          console.log(`Email found, sending reset email to: ${email}`);
-          await sendPasswordResetEmail(auth, email);
-          alert("Password reset email sent. Please check your inbox.");
-        } else {
-          // Email is not registered
-          console.log(`No sign-in methods found for email: ${email}`);
-          alert("Error: No account found with this email.");
-        }
+        // Attempt to send password reset email
+        await sendPasswordResetEmail(auth, email);
+        alert("Password reset email sent. Please check your inbox.");
       } catch (error) {
         console.error("Error during password reset process:", error);
-        alert("An error occurred: " + error.message);
+
+        // Handle specific Firebase errors
+        if (error.code === 'auth/user-not-found') {
+          alert("Error: No account found with this email.");
+        } else if (error.code === 'auth/invalid-email') {
+          alert("Error: Invalid email format.");
+        } else {
+          alert("An error occurred: " + error.message);
+        }
       }
     }
 
