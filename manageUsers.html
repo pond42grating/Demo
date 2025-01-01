@@ -1,1 +1,212 @@
 
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Users - DWS Management</title>
+  <script type="module">
+    import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, query, where, doc, updateDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyAXZgxM6PU-T3D2811KnBszblRWju7rv1Y",
+      authDomain: "dws-management.firebaseapp.com",
+      projectId: "dws-management",
+      storageBucket: "dws-management.appspot.com",
+      messagingSenderId: "23827231923",
+      appId: "1:23827231923:web:97141b6d19c7cd109d2cc6",
+      measurementId: "G-L14GLJDYW7"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Fetch Users
+    async function fetchUsers() {
+      const usersRef = collection(db, "Users");
+      const querySnapshot = await getDocs(usersRef);
+      const usersList = [];
+
+      querySnapshot.forEach((doc) => {
+        const userData = doc.data();
+        usersList.push({ id: doc.id, ...userData });
+      });
+
+      // Display users in table
+      const usersTable = document.getElementById("users-table-body");
+      usersTable.innerHTML = ''; // Clear the table first
+
+      usersList.forEach((user) => {
+        const userRow = document.createElement('tr');
+        userRow.innerHTML = `
+          <td>${user.id}</td>
+          <td>${user.email}</td>
+          <td>${user.status}</td>
+          <td><button class="approve-btn" onclick="approveUser('${user.id}')">Approve</button></td>
+          <td><button class="reject-btn" onclick="rejectUser('${user.id}')">Reject</button></td>
+        `;
+        usersTable.appendChild(userRow);
+      });
+    }
+
+    // Approve User
+    async function approveUser(userId) {
+      const userRef = doc(db, "Users", userId);
+      await updateDoc(userRef, {
+        status: "approved"
+      });
+
+      alert('User has been approved.');
+      fetchUsers(); // Refresh users list
+    }
+
+    // Reject User
+    async function rejectUser(userId) {
+      const userRef = doc(db, "Users", userId);
+      await updateDoc(userRef, {
+        status: "rejected"
+      });
+
+      alert('User has been rejected.');
+      fetchUsers(); // Refresh users list
+    }
+
+    // Admin Logout Function
+    function logout() {
+      signOut(auth).then(() => {
+        window.location.href = "index.html"; // Redirect to login page after logging out
+      }).catch((error) => {
+        console.error("Error logging out:", error);
+      });
+    }
+
+    window.onload = function() {
+      fetchUsers(); // Fetch and display users when page loads
+    };
+
+    window.logout = logout;
+  </script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f9;
+      color: #333;
+    }
+
+    /* Admin Container */
+    .container {
+      max-width: 1200px;
+      margin: 50px auto;
+      padding: 20px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #4CAF50;
+    }
+
+    /* User Table */
+    table {
+      width: 100%;
+      margin: 20px 0;
+      border-collapse: collapse;
+      background-color: #fff;
+    }
+
+    table th, table td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+
+    table th {
+      background-color: #4CAF50;
+      color: white;
+    }
+
+    .approve-btn, .reject-btn {
+      padding: 8px 16px;
+      border-radius: 5px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .approve-btn {
+      background-color: #4CAF50;
+      color: white;
+    }
+
+    .approve-btn:hover {
+      background-color: #45a049;
+    }
+
+    .reject-btn {
+      background-color: #f44336;
+      color: white;
+    }
+
+    .reject-btn:hover {
+      background-color: #e53935;
+    }
+
+    .logout-btn {
+      background-color: #f44336;
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      display: block;
+      margin: 20px auto;
+    }
+
+    .logout-btn:hover {
+      background-color: #e53935;
+    }
+
+    .button-container {
+      text-align: center;
+    }
+
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Manage Users</h1>
+
+    <!-- User List Table -->
+    <table>
+      <thead>
+        <tr>
+          <th>User ID</th>
+          <th>Email</th>
+          <th>Status</th>
+          <th>Approve</th>
+          <th>Reject</th>
+        </tr>
+      </thead>
+      <tbody id="users-table-body">
+        <!-- Users will be populated here -->
+      </tbody>
+    </table>
+
+    <!-- Logout Button -->
+    <div class="button-container">
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+  </div>
+</body>
+</html>
