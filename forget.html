@@ -34,24 +34,23 @@
       }
 
       try {
-        // Check if the email is registered with Firebase Authentication
+        // Check if the email is registered in Firebase Authentication
+        console.log("Checking if the email is registered...");
         const signInMethods = await fetchSignInMethodsForEmail(auth, email);
 
         if (signInMethods.length === 0) {
-          alert("Error: No account found with this email.");
-          return;
-        }
-
-        // Send the password reset email
-        await sendPasswordResetEmail(auth, email);
-        alert("Password reset email has been sent. Please check your inbox.");
-      } catch (error) {
-        if (error.code === "auth/user-not-found") {
+          console.log(`No sign-in methods found for email: ${email}`);
           alert("Error: No account found with this email.");
         } else {
-          console.error("Error during password reset: ", error);
-          alert("Error: " + error.message);
+          console.log(`Email is registered with the following methods: ${signInMethods}`);
+          // Send a password reset email
+          await sendPasswordResetEmail(auth, email);
+          console.log(`Password reset email sent to ${email}`);
+          alert("Password reset email has been sent. Please check your inbox.");
         }
+      } catch (error) {
+        console.error("Error during password reset process:", error);
+        alert("An error occurred: " + error.message);
       }
     }
 
